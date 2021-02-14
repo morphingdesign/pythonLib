@@ -1,7 +1,7 @@
 # -----------------------------------------------------------
 # pyRef_ml.py
 # v.1.0
-# Updated: 20210211
+# Updated: 20210212
 # -----------------------------------------------------------
 
 """
@@ -124,7 +124,20 @@ print(classification_report(y_test, pred))
 # DATA ACCESS ))))))))))))))))))))))))))))))))))))))))) START
 # -----------------------------------------------------------
 
+# NEW DATA
+# Generate sample sets using NumPy.
+# Evenly spaced numbers over specified interval.
+sample_set = np.linspace(-1, 1, 10)  # 10 values from -1 to 1
+
+#************************************************************
+# DATA SETS
+# Import available datasets from SciKit.
 from sklearn.datasets import <dataset_name>
+
+# Generate binary classification data blobs.
+from sklearn.datasets import make_blobs
+# Specify num of samples, features, centers, and rand state.
+data = make_blobs(n_samples=50, n_features=2, centers=2, random_state=75)
 
 # -----------------------------------------------------------
 # DATA ACCESS ))))))))))))))))))))))))))))))))))))))))))) END
