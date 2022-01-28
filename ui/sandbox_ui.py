@@ -30,24 +30,21 @@ class Root(QtWidgets.QMainWindow):
         self.btn = QtWidgets.QPushButton('test')
         self._h_layout.addWidget(self.btn)
 
-        # Setup model and data.
-        # self.model = QtGui.QStandardItemModel()
-        # self.header_labels = ['col1', 'col2', 'col3', 'col4', 'col5', 'col6', 'col7', 'col8']
-        self.num_of_cols = 10
-        self.num_of_rows = 35
-        # Generate header labels via list comprehension.
-        self.header_labels = [('Column %d' % (i + 1)) for i in range(self.num_of_cols)]
-
+        # *********************
         self.table = DataTable()
-        self.table.setMinimumSize(600, 500)
-        self.table.setColumnCount(self.num_of_cols)
-        self.table.setHorizontalHeaderLabels(self.header_labels)
-        self.table.setRowCount(self.num_of_rows)
-
-        self.data = Data(self.num_of_cols, self.num_of_rows)
-        self._populate_data()
-
+        self.table_frozen = DataTable()
+        self.table_frozen.setParent(self.table)
         self._v_layout.addWidget(self.table)
+        self.table_frozen.frozen_column()
+        self.table.verticalScrollBar().valueChanged.connect(
+            self.table_frozen.verticalScrollBar().setValue)
+        self.table_frozen.verticalScrollBar().valueChanged.connect(
+            self.table.verticalScrollBar().setValue)
+        self.table_frozen.setGeometry(
+            self.table.verticalHeader().width() + self.table.frameWidth(),
+            self.table.frameWidth(), self.table.columnWidth(0),
+            self.table.viewport().height() + self.table.horizontalHeader().height())
+        # **********************
 
         self.show()
 
@@ -62,14 +59,6 @@ class Root(QtWidgets.QMainWindow):
 
         self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         self.setMaximumHeight(500)
-
-    def _populate_data(self):
-        """"""
-        for row_num, row_data in enumerate(self.data.data_by_row):
-            for col_num, col_data in enumerate(row_data):
-                cell_datum = QtWidgets.QTableWidgetItem(str(col_data))
-                cell_datum.setTextAlignment(QtCore.Qt.AlignCenter)
-                self.table.setItem(row_num, col_num, cell_datum)
 
 
 # class Widget(QWidget):
@@ -137,6 +126,50 @@ class DataTable(QtWidgets.QTableWidget):
     def __init__(self):
         super(DataTable, self).__init__()
         self.setHorizontalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
+        self.setVerticalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
+        self.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Fixed)
+
+        self.num_of_cols = 10
+        self.num_of_rows = 35
+        # Generate header labels via list comprehension.
+        self.header_labels = [('Column %d' % (i + 1)) for i in range(self.num_of_cols)]
+
+        self.setMinimumSize(600, 500)
+        self.setColumnCount(self.num_of_cols)
+        self.setHorizontalHeaderLabels(self.header_labels)
+        self.setRowCount(self.num_of_rows)
+
+        self.data = Data(self.num_of_cols, self.num_of_rows)
+        self._populate_data()
+
+    def _populate_data(self):
+        """"""
+        for row_num, row_data in enumerate(self.data.data_by_row):
+            for col_num, col_data in enumerate(row_data):
+                cell_datum = QtWidgets.QTableWidgetItem(str(col_data))
+                cell_datum.setTextAlignment(QtCore.Qt.AlignCenter)
+                self.setItem(row_num, col_num, cell_datum)
+
+    def frozen_column(self):
+        """"""
+        # Hide frozen table's vertical labels.
+        self.verticalHeader().hide()
+        self.setFixedWidth(self.columnWidth(0))
+        # Style frozen table to appear unique from main table.
+        self.setStyleSheet('''
+                            QTableView { border: none;
+                                         background-color: #727272;
+                                         selection-background-color: #999;
+                            }''')
+        #
+        self.setFocusPolicy(QtCore.Qt.NoFocus)
+        # Setup columns and isolate first column only.
+        for col in range(1, self.columnCount()):
+            self.setColumnHidden(col, True)
+        self.setColumnWidth(0, self.columnWidth(0))
+        # Isolate table contents only.
+        self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 
 
 class Table(QtWidgets.QTableView):
