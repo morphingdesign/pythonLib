@@ -11,8 +11,17 @@ class Root(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         QtWidgets.QMainWindow.__init__(self, parent)
         self._main_defaults()
+
+        self.tabs = QtWidgets.QTabWidget()
+        self.tabs.setTabShape(QtWidgets.QTabWidget.Triangular)
+
+        self.dashboard = QtWidgets.QFrame()
+        self.tabs.addTab(self.dashboard, "Dashboard")
+        self.tabs.setTabToolTip(0, "This is a dashboard.")
+
         self.main = QtWidgets.QWidget()
-        self.setCentralWidget(self.main)
+        self.setCentralWidget(self.tabs)
+        self.tabs.addTab(self.main, "Data Table")
         self._h_layout = QtWidgets.QHBoxLayout()
         self._v_layout = QtWidgets.QVBoxLayout()
         self.main.setLayout(self._v_layout)
@@ -22,22 +31,23 @@ class Root(QtWidgets.QMainWindow):
         self._h_layout.addWidget(self.btn)
 
         # Setup model and data.
-        self.model = QtGui.QStandardItemModel()
+        # self.model = QtGui.QStandardItemModel()
         # self.header_labels = ['col1', 'col2', 'col3', 'col4', 'col5', 'col6', 'col7', 'col8']
         self.num_of_cols = 10
+        self.num_of_rows = 35
         # Generate header labels via list comprehension.
         self.header_labels = [('Column %d' % (i + 1)) for i in range(self.num_of_cols)]
-        self.num_of_rows = 35
 
-        self.model.setHorizontalHeaderLabels(self.header_labels)
-        self.model.setColumnCount(self.num_of_cols)
-        self.model.setRowCount(self.num_of_rows)
+        self.table = DataTable()
+        self.table.setMinimumSize(600, 500)
+        self.table.setColumnCount(self.num_of_cols)
+        self.table.setHorizontalHeaderLabels(self.header_labels)
+        self.table.setRowCount(self.num_of_rows)
+
         self.data = Data(self.num_of_cols, self.num_of_rows)
         self._populate_data()
 
-        self.main_table = Table(self.model)
-        self.main_table.setMinimumSize(600, 500)
-        self._v_layout.addWidget(self.main_table)
+        self._v_layout.addWidget(self.table)
 
         self.show()
 
@@ -57,10 +67,9 @@ class Root(QtWidgets.QMainWindow):
         """"""
         for row_num, row_data in enumerate(self.data.data_by_row):
             for col_num, col_data in enumerate(row_data):
-                # cell_datum = QtWidgets.QTableWidgetItem(str(col_data))
-                cell_datum = QtGui.QStandardItem(str(col_data))
+                cell_datum = QtWidgets.QTableWidgetItem(str(col_data))
                 cell_datum.setTextAlignment(QtCore.Qt.AlignCenter)
-                self.model.setItem(row_num, col_num, cell_datum)
+                self.table.setItem(row_num, col_num, cell_datum)
 
 
 # class Widget(QWidget):
@@ -122,6 +131,12 @@ class Data:
         data_nparray = self.data
         data_nparray_t = data_nparray.T
         data_nparray_str = np.array2string(data_nparray_t)
+
+
+class DataTable(QtWidgets.QTableWidget):
+    def __init__(self):
+        super(DataTable, self).__init__()
+        self.setHorizontalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
 
 
 class Table(QtWidgets.QTableView):
